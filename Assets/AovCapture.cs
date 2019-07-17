@@ -7,39 +7,57 @@ using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 [RequireComponent(typeof(HDAdditionalCameraData))]
 class AovCapture : MonoBehaviour
 {
-    [SerializeField] RenderTexture _normalTarget = null;
-    [SerializeField] RenderTexture _depthTarget = null;
+    [SerializeField] RenderTexture _targetRT = null;
+    [SerializeField, HideInInspector] Shader _shader = null;
 
+    Material _material;
+
+    RTHandleSystem.RTHandle _colorRT;
     RTHandleSystem.RTHandle _normalRT;
     RTHandleSystem.RTHandle _depthRT;
 
     void OnEnable()
     {
-        if (_normalTarget == null || _depthTarget == null) return;
+        if (_targetRT == null) return;
+
+        var dims = (x:_targetRT.width, y:_targetRT.height);
+
+        _colorRT = RTHandles.Alloc(
+            dims.x, dims.y, 1, DepthBits.None,
+            GraphicsFormat.R8G8B8A8_SRGB
+        );
 
         _normalRT = RTHandles.Alloc(
-            _normalTarget.width, _normalTarget.height, 1,
-            DepthBits.None, _normalTarget.graphicsFormat
+            dims.x, dims.y, 1, DepthBits.None,
+            GraphicsFormat.R16G16B16A16_SFloat
         );
 
         _depthRT = RTHandles.Alloc(
-            _depthTarget.width, _depthTarget.height, 1,
-            DepthBits.None, _depthTarget.graphicsFormat
+            dims.x, dims.y, 1, DepthBits.None,
+            GraphicsFormat.R32_SFloat
         );
-
-        var request = new AOVRequest(AOVRequest.@default);
-        request.SetFullscreenOutput(MaterialSharedProperty.Normal);
 
         GetComponent<HDAdditionalCameraData>().SetAOVRequests(
             new AOVRequestBuilder().Add(
-                request,
+                AOVRequest.@default,
                 bufferID =>
-                    bufferID == AOVBuffers.Color ? _normalRT : _depthRT,
+                    bufferID == AOVBuffers.Color ? _colorRT :
+                    (bufferID == AOVBuffers.Normals ? _normalRT : _depthRT),
                 null,
-                new [] { AOVBuffers.Color, AOVBuffers.DepthStencil },
+                new [] {
+                    AOVBuffers.Color,
+                    AOVBuffers.Normals,
+                    AOVBuffers.DepthStencil
+                },
                 (cmd, textures, properties) => {
-                    cmd.Blit(textures[0], _normalTarget);
-                    cmd.Blit(textures[1], _depthTarget);
+                    if (_material == null)
+                    {
+                        _material = new Material(_shader);
+                        _material.hideFlags = HideFlags.DontSave;
+                    }
+                    cmd.SetGlobalTexture("_NormalTex", textures[1]);
+                    cmd.SetGlobalTexture("_DepthTex", textures[2]);
+                    cmd.Blit(textures[0], _targetRT, _material);
                 }
             ).Build()
         );
@@ -48,5 +66,23 @@ class AovCapture : MonoBehaviour
     void OnDisable()
     {
         GetComponent<HDAdditionalCameraData>().SetAOVRequests(null);
+    }
+
+    void OnValidate()
+    {
+        OnDisable();
+        OnEnable();
+    }
+
+    void OnDestroy()
+    {
+        if (_material != null)
+        {
+            if (Application.isPlaying)
+                Destroy(_material);
+            else
+                DestroyImmediate(_material);
+            _material = null;
+        }
     }
 }

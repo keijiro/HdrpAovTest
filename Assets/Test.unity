@@ -543,7 +543,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: 6ba7393893b2bc6cb90573e5b11d087f, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0
@@ -579,8 +579,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55d31f1de209675e79f10d1c64da0cbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _normalTarget: {fileID: 8400000, guid: bb12aa1eeddc8c0539e1a074d8367132, type: 2}
-  _depthTarget: {fileID: 8400000, guid: 78c9d0808de6b7daaad2c32612ffd69e, type: 2}
+  _targetRT: {fileID: 8400000, guid: 6ba7393893b2bc6cb90573e5b11d087f, type: 2}
+  _shader: {fileID: 4800000, guid: 32fb6f2c6ab5463cf806140947549fd5, type: 3}
 --- !u!1 &1464093533
 GameObject:
   m_ObjectHideFlags: 0
