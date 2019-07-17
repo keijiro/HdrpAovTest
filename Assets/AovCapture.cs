@@ -29,7 +29,7 @@ class AovCapture : MonoBehaviour
 
         _normalRT = RTHandles.Alloc(
             dims.x, dims.y, 1, DepthBits.None,
-            GraphicsFormat.R16G16B16A16_SFloat
+            GraphicsFormat.R8G8B8A8_UNorm
         );
 
         _depthRT = RTHandles.Alloc(
@@ -55,9 +55,10 @@ class AovCapture : MonoBehaviour
                         _material = new Material(_shader);
                         _material.hideFlags = HideFlags.DontSave;
                     }
-                    cmd.SetGlobalTexture("_NormalTex", textures[1]);
-                    cmd.SetGlobalTexture("_DepthTex", textures[2]);
-                    cmd.Blit(textures[0], _targetRT, _material);
+                    cmd.SetGlobalTexture("_ColorTexture", textures[0]);
+                    cmd.SetGlobalTexture("_NormalTexture", textures[1]);
+                    cmd.SetGlobalTexture("_DepthTexture", textures[2]);
+                    UnityEngine.Rendering.CoreUtils.DrawFullScreen(cmd, _material, _targetRT);
                 }
             ).Build()
         );

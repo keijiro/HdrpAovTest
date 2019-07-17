@@ -1,49 +1,49 @@
-﻿Shader "Hidden/Compositor"
+Shader "Hidden/Compositor"
 {
+    HLSLINCLUDE
+
+    #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+    #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Material/NormalBuffer.hlsl"
+
+    TEXTURE2D(_ColorTexture);
+    TEXTURE2D(_NormalTexture);
+    TEXTURE2D(_DepthTexture);
+
+    struct Varyings
+    {
+        float4 positionCS : SV_POSITION;
+        float2 texcoord : TEXCOORD0;
+    };
+
+    Varyings Vertex(uint vertexID : SV_VertexID)
+    {
+        Varyings output;
+        output.positionCS = GetFullScreenTriangleVertexPosition(vertexID);
+        output.texcoord = GetFullScreenTriangleTexCoord(vertexID);
+        return output;
+    }
+
+    float4 Fragment(Varyings input) : SV_Target
+    {
+        uint2 positionSS = input.texcoord * _ScreenSize.xy;
+        float4 pn = LOAD_TEXTURE2D(_NormalTexture, positionSS);
+        float2 octNormalWS = Unpack888ToFloat2(pn.rgb);
+        float3 n = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
+        return float4(n, 1);
+    }
+
+    ENDHLSL
+
     SubShader
     {
         Cull Off ZWrite Off ZTest Always
         Pass
         {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-
-            #include "UnityCG.cginc"
-
-            struct appdata
-            {
-                float4 vertex : POSITION;
-                float2 uv : TEXCOORD0;
-            };
-
-            struct v2f
-            {
-                float2 uv : TEXCOORD0;
-                float4 vertex : SV_POSITION;
-            };
-
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.uv = v.uv;
-                return o;
-            }
-
-            sampler2D _MainTex;
-            sampler2D _NormalTex;
-            sampler2D _DepthTex;
-
-            fixed4 frag (v2f i) : SV_Target
-            {
-                float4 c = tex2D(_MainTex, i.uv);
-                float4 n = tex2D(_NormalTex, i.uv);
-                float4 d = tex2D(_DepthTex, i.uv);
-                return float4(c.r, n.r, d.r, 1);
-            }
-
-            ENDCG
+            HLSLPROGRAM
+            #pragma vertex Vertex
+            #pragma fragment Fragment
+            ENDHLSL
         }
     }
 }
