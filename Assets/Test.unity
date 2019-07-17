@@ -423,16 +423,16 @@ Camera:
   m_FOVAxisMode: 0
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
-  m_FocalLength: 50
+  m_FocalLength: 114.17237
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 60
+  near clip plane: 7
+  far clip plane: 16
+  field of view: 12
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -440,7 +440,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
+  m_TargetTexture: {fileID: 8400000, guid: 6ba7393893b2bc6cb90573e5b11d087f, type: 2}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 0
@@ -457,13 +457,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 858963879}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: 0.13052616, y: 0, z: 0, w: 0.9914449}
+  m_LocalPosition: {x: 0, y: 2.8, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 15, y: 0, z: 0}
 --- !u!114 &858963883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -476,7 +476,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 55d31f1de209675e79f10d1c64da0cbc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _output: {fileID: 8400000, guid: 78c9d0808de6b7daaad2c32612ffd69e, type: 2}
+  _normalTarget: {fileID: 8400000, guid: bb12aa1eeddc8c0539e1a074d8367132, type: 2}
+  _depthTarget: {fileID: 8400000, guid: 78c9d0808de6b7daaad2c32612ffd69e, type: 2}
 --- !u!1 &1464093533
 GameObject:
   m_ObjectHideFlags: 0
