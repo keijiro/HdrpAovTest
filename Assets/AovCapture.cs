@@ -3,7 +3,9 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 
-class AovTest : MonoBehaviour
+[ExecuteAlways]
+[RequireComponent(typeof(HDAdditionalCameraData))]
+class AovCapture : MonoBehaviour
 {
     [SerializeField] RenderTexture _normalTarget = null;
     [SerializeField] RenderTexture _depthTarget = null;
@@ -11,8 +13,10 @@ class AovTest : MonoBehaviour
     RTHandleSystem.RTHandle _normalRT;
     RTHandleSystem.RTHandle _depthRT;
 
-    void Start()
+    void OnEnable()
     {
+        if (_normalTarget == null || _depthTarget == null) return;
+
         _normalRT = RTHandles.Alloc(
             _normalTarget.width, _normalTarget.height, 1,
             DepthBits.None, _normalTarget.graphicsFormat
@@ -39,5 +43,10 @@ class AovTest : MonoBehaviour
                 }
             ).Build()
         );
+    }
+
+    void OnDisable()
+    {
+        GetComponent<HDAdditionalCameraData>().SetAOVRequests(null);
     }
 }
