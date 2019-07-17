@@ -721,8 +721,8 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 7
-  far clip plane: 16
+  near clip plane: 0.1
+  far clip plane: 100
   field of view: 12
   orthographic: 0
   orthographic size: 5
@@ -768,9 +768,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _edgeColor: {r: 1, g: 1, b: 1, a: 1}
-  _edgeSource: 2
-  _edgeThreshold: 0.1
-  _edgeContrast: 0.7
+  _edgeSource: 1
+  _edgeThreshold: 0.3
+  _edgeContrast: 0.8
   _fillGradient:
     serializedVersion: 2
     key0: {r: 0, g: 0, b: 0, a: 1}
@@ -781,8 +781,8 @@ MonoBehaviour:
     key5: {r: 0, g: 0, b: 0, a: 0}
     key6: {r: 0, g: 0, b: 0, a: 0}
     key7: {r: 0, g: 0, b: 0, a: 0}
-    ctime0: 11726
-    ctime1: 21041
+    ctime0: 30247
+    ctime1: 39781
     ctime2: 65535
     ctime3: 65535
     ctime4: 0
@@ -802,7 +802,6 @@ MonoBehaviour:
     m_NumAlphaKeys: 2
   _fillOpacity: 1
   _targetTexture: {fileID: 8400000, guid: 28b2e2e920e9b74a08558a97d1758d9f, type: 2}
-  _shader: {fileID: 4800000, guid: 32fb6f2c6ab5463cf806140947549fd5, type: 3}
 --- !u!1 &1464093533
 GameObject:
   m_ObjectHideFlags: 0

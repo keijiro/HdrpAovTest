@@ -54,6 +54,10 @@ float4 Fragment(Varyings input) : SV_Target
     uint2 ps2 = positionSS + uint2(1, 0); // TR
     uint2 ps3 = positionSS + uint2(0, 1); // BL
 
+    ps1 = min(ps1, _ScreenSize.xy - 1);
+    ps2 = min(ps2, _ScreenSize.xy - 1);
+    ps3 = min(ps3, _ScreenSize.xy - 1);
+
 #ifdef RECOLOR_EDGE_COLOR
 
     // Color samples
@@ -98,7 +102,7 @@ float4 Fragment(Varyings input) : SV_Target
 
     // Apply fill gradient.
     float3 fill = _ColorKey0.rgb;
-    float lum = Luminance(c0.rgb);
+    float lum = Luminance(LinearToSRGB(c0.rgb));
 #ifdef RECOLOR_GRADIENT_LERP
     fill = lerp(fill, _ColorKey1.rgb, saturate((lum - _ColorKey0.w) / (_ColorKey1.w - _ColorKey0.w)));
     fill = lerp(fill, _ColorKey2.rgb, saturate((lum - _ColorKey1.w) / (_ColorKey2.w - _ColorKey1.w)));
