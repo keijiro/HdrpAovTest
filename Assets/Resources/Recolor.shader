@@ -1,4 +1,4 @@
-Shader "Hidden/Recolor"
+Shader "Hidden/HdrpAovTest/Recolor"
 {
     SubShader
     {
