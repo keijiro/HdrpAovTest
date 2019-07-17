@@ -1,3 +1,5 @@
+// Recolor from Kino post processing effect suite
+
 Shader "Hidden/HdrpAovTest/Recolor"
 {
     SubShader

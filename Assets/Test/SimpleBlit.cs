@@ -5,7 +5,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 namespace HdrpAovTest
 {
     [ExecuteAlways]
-    sealed public class SimpleBlit : MonoBehaviour
+    public sealed class SimpleBlit : MonoBehaviour
     {
         [SerializeField] RenderTexture _source = null;
 

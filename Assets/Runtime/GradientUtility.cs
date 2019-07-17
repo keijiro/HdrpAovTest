@@ -53,10 +53,6 @@ namespace HdrpAovTest
                 );
         }
 
-    }
-
-    public static class GradientColorKeyExtension
-    {
         public static Vector4 ToVector(this GradientColorKey key)
         {
             var c = key.color.linear;

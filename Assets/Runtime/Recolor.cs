@@ -1,16 +1,21 @@
-﻿using System.Collections.Generic;
+﻿//
+// Recolor from Kino post processing effect suite
+//
+// Modified to use the AOV output feature of HDRP.
+//
+
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Experimental.Rendering.HDPipeline.Attributes;
 using RTHandle = UnityEngine.Experimental.Rendering.RTHandleSystem.RTHandle;
 
 namespace HdrpAovTest
 {
     [ExecuteAlways]
     [RequireComponent(typeof(HDAdditionalCameraData))]
-    public class Recolor : MonoBehaviour
+    public sealed class Recolor : MonoBehaviour
     {
         #region Nested classes
 
@@ -54,7 +59,10 @@ namespace HdrpAovTest
 
         public Gradient fillGradient {
             get { return _fillGradient; }
-            set { _fillGradient = value; }
+            set {
+                _fillGradient = value;
+                _colorKeys = value.colorKeys;
+            }
         }
 
         public float fillOpacity {
@@ -89,12 +97,15 @@ namespace HdrpAovTest
 
         #endregion
 
-        #region Private variables and properties
+        #region Private variables
 
         Material _material;
-        MaterialPropertyBlock _sheet;
-        GradientColorKey [] _gradientCache;
-        (RTHandle color, RTHandle normal, RTHandle depth) _rtHandles;
+        MaterialPropertyBlock _props;
+        GradientColorKey [] _colorKeys;
+
+        #endregion
+
+        #region Private helper properties
 
         Vector2 EdgeThresholdVector {
             get {
@@ -114,25 +125,27 @@ namespace HdrpAovTest
 
         #endregion
 
-        #region AOV request callbacks
+        #region AOV request methods
 
-        RTHandle RTHandleAllocator(AOVBuffers bufferID)
+        (RTHandle color, RTHandle normal, RTHandle depth) _rt;
+
+        RTHandle RTAllocator(AOVBuffers bufferID)
         {
             if (bufferID == AOVBuffers.Color)
-                return _rtHandles.color ??
-                    (_rtHandles.color = RTHandles.Alloc(
+                return _rt.color ??
+                    (_rt.color = RTHandles.Alloc(
                         _targetTexture.width, _targetTexture.height, 1,
                         DepthBits.None, GraphicsFormat.R8G8B8A8_SRGB));
 
             if (bufferID == AOVBuffers.Normals)
-                return _rtHandles.normal ??
-                    (_rtHandles.normal = RTHandles.Alloc(
+                return _rt.normal ??
+                    (_rt.normal = RTHandles.Alloc(
                         _targetTexture.width, _targetTexture.height, 1,
                         DepthBits.None, GraphicsFormat.R8G8B8A8_UNorm));
 
             // bufferID == AOVBuffers.Depth
-            return _rtHandles.depth ??
-                (_rtHandles.depth = RTHandles.Alloc(
+            return _rt.depth ??
+                (_rt.depth = RTHandles.Alloc(
                     _targetTexture.width, _targetTexture.height, 1,
                     DepthBits.None, GraphicsFormat.R32_SFloat));
         }
@@ -140,10 +153,10 @@ namespace HdrpAovTest
         void AovCallback(
             CommandBuffer cmd,
             List<RTHandle> buffers,
-            RenderOutputProperties properties
+            RenderOutputProperties outProps
         )
         {
-            // Shader material
+            // Shader objects instantiation
             if (_material == null)
             {
                 var shader = Shader.Find("Hidden/HdrpAovTest/Recolor");
@@ -151,27 +164,43 @@ namespace HdrpAovTest
                 _material.hideFlags = HideFlags.DontSave;
             }
 
-            if (_sheet == null)
-                _sheet = new MaterialPropertyBlock();
+            if (_props == null) _props = new MaterialPropertyBlock();
 
             // AOV buffers
-            _sheet.SetTexture(_ID. ColorTexture, buffers[0]);
-            _sheet.SetTexture(_ID.NormalTexture, buffers[1]);
-            _sheet.SetTexture(_ID. DepthTexture, buffers[2]);
+            _props.SetTexture(_ID. ColorTexture, buffers[0]);
+            _props.SetTexture(_ID.NormalTexture, buffers[1]);
+            _props.SetTexture(_ID. DepthTexture, buffers[2]);
 
             // Shader properties
-            _sheet.SetColor(_ID.EdgeColor, _edgeColor);
-            _sheet.SetVector(_ID.EdgeThresholds, EdgeThresholdVector);
-            _sheet.SetFloat(_ID.FillOpacity, _fillOpacity);
-            GradientUtility.SetColorKeys(_sheet, _gradientCache);
+            _props.SetColor(_ID.EdgeColor, _edgeColor);
+            _props.SetVector(_ID.EdgeThresholds, EdgeThresholdVector);
+            _props.SetFloat(_ID.FillOpacity, _fillOpacity);
+            GradientUtility.SetColorKeys(_props, _colorKeys);
 
             // Shader pass selection
             var pass = (int)_edgeSource;
-            if (_fillOpacity > 0 && _gradientCache.Length > 3) pass += 3;
+            if (_fillOpacity > 0 && _colorKeys.Length > 3) pass += 3;
             if (_fillGradient.mode == GradientMode.Blend) pass += 6;
 
-            UnityEngine.Rendering.CoreUtils.DrawFullScreen(
-                cmd, _material, _targetTexture, _sheet, pass);
+            // Full screen triangle
+            CoreUtils.DrawFullScreen(
+                cmd, _material, _targetTexture, _props, pass
+            );
+        }
+
+        AOVRequestDataCollection BuildAovRequest()
+        {
+            return new AOVRequestBuilder().Add(
+                AOVRequest.@default,
+                RTAllocator,
+                null, // lightFilter
+                new [] {
+                    AOVBuffers.Color,
+                    AOVBuffers.Normals,
+                    AOVBuffers.DepthStencil
+                },
+                AovCallback
+            ).Build();
         }
 
         #endregion
@@ -184,19 +213,7 @@ namespace HdrpAovTest
             if (_targetTexture == null) return;
 
             // AOV request
-            GetComponent<HDAdditionalCameraData>().SetAOVRequests(
-                new AOVRequestBuilder().Add(
-                    AOVRequest.@default,
-                    RTHandleAllocator,
-                    null,
-                    new [] {
-                        AOVBuffers.Color,
-                        AOVBuffers.Normals,
-                        AOVBuffers.DepthStencil
-                    },
-                    AovCallback
-                ).Build()
-            );
+            GetComponent<HDAdditionalCameraData>().SetAOVRequests(BuildAovRequest());
         }
 
         void OnDisable()
@@ -212,35 +229,24 @@ namespace HdrpAovTest
 
         void OnDestroy()
         {
-            if (_material != null)
-            {
-                if (Application.isPlaying)
-                    Destroy(_material);
-                else
-                    DestroyImmediate(_material);
-                _material = null;
-            }
+            CoreUtils.Destroy(_material);
         }
-
-        #if !UNITY_EDITOR
 
         void Start()
         {
+            #if !UNITY_EDITOR
             // At runtime, copy gradient color keys only once on initialization.
-            _gradientCache = _fillGradient.colorKeys;
+            _colorKeys = _fillGradient.colorKeys;
+            #endif
         }
-
-        #endif
-
-        #if UNITY_EDITOR
 
         void LateUpdate()
         {
+            #if UNITY_EDITOR
             // In editor, copy gradient color keys every frame.
-            _gradientCache = _fillGradient.colorKeys;
+            _colorKeys = _fillGradient.colorKeys;
+            #endif
         }
-
-        #endif
 
         #endregion
     }
