@@ -14,6 +14,7 @@ TEXTURE2D(_DepthTexture);
 float4 _EdgeColor;
 float2 _EdgeThresholds;
 float _FillOpacity;
+float4 _BgColor;
 
 float4 _ColorKey0;
 float4 _ColorKey1;
@@ -55,8 +56,9 @@ float4 Fragment(
     uint2 p2 = min(p0 + uint2(1, 0), _ScreenSize.xy - 1); // TR
     uint2 p3 = min(p0 + uint2(0, 1), _ScreenSize.xy - 1); // BL
 
-    // Source color
+    // Source color/depth
     float4 c0 = LOAD_TEXTURE2D(_ColorTexture, p0);
+    float d0 = LOAD_TEXTURE2D(_DepthTexture, p0).r;
 
 #ifdef RECOLOR_EDGE_COLOR
 
@@ -75,7 +77,6 @@ float4 Fragment(
 #ifdef RECOLOR_EDGE_DEPTH
 
     // Depth samples
-    float d0 = LOAD_TEXTURE2D(_DepthTexture, p0).r;
     float d1 = LOAD_TEXTURE2D(_DepthTexture, p1).r;
     float d2 = LOAD_TEXTURE2D(_DepthTexture, p2).r;
     float d3 = LOAD_TEXTURE2D(_DepthTexture, p3).r;
@@ -129,6 +130,7 @@ float4 Fragment(
     float edge = smoothstep(_EdgeThresholds.x, _EdgeThresholds.y, g);
     float3 cb = lerp(c0.rgb, fill, _FillOpacity);
     float3 co = lerp(cb, _EdgeColor.rgb, edge * _EdgeColor.a);
+    co = lerp(co, _BgColor.rgb, (d0 == 0) * _BgColor.a);
 
     return float4(co, c0.a);
 }

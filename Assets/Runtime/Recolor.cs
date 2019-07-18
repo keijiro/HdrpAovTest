@@ -31,6 +31,7 @@ namespace HdrpAovTest
         [SerializeField, Range(0, 1)] float _edgeContrast = 0.5f;
         [SerializeField] Gradient _fillGradient = null;
         [SerializeField, Range(0, 1)] float _fillOpacity = 0;
+        [SerializeField] Color _backgroundColor = Color.blue;
         [SerializeField] RenderTexture _targetTexture = null;
 
         #endregion
@@ -85,14 +86,16 @@ namespace HdrpAovTest
             int DepthTexture,
             int EdgeColor,
             int EdgeThresholds,
-            int FillOpacity
+            int FillOpacity,
+            int BgColor
         ) _ID = (
             Shader.PropertyToID("_ColorTexture"),
             Shader.PropertyToID("_NormalTexture"),
             Shader.PropertyToID("_DepthTexture"),
             Shader.PropertyToID("_EdgeColor"),
             Shader.PropertyToID("_EdgeThresholds"),
-            Shader.PropertyToID("_FillOpacity")
+            Shader.PropertyToID("_FillOpacity"),
+            Shader.PropertyToID("_BgColor")
         );
 
         #endregion
@@ -175,6 +178,7 @@ namespace HdrpAovTest
             _props.SetColor(_ID.EdgeColor, _edgeColor);
             _props.SetVector(_ID.EdgeThresholds, EdgeThresholdVector);
             _props.SetFloat(_ID.FillOpacity, _fillOpacity);
+            _props.SetColor(_ID.BgColor, _backgroundColor);
             GradientUtility.SetColorKeys(_props, _colorKeys);
 
             // Shader pass selection
@@ -223,8 +227,11 @@ namespace HdrpAovTest
 
         void OnValidate()
         {
-            OnDisable();
-            OnEnable();
+            if (enabled)
+            {
+                OnDisable();
+                OnEnable();
+            }
         }
 
         void OnDestroy()
