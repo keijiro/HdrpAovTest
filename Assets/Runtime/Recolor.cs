@@ -6,10 +6,10 @@
 
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using RTHandle = UnityEngine.Experimental.Rendering.RTHandleSystem.RTHandle;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
+using RTHandle = UnityEngine.Rendering.RTHandle;
 
 namespace HdrpAovTest
 {
@@ -195,7 +195,7 @@ namespace HdrpAovTest
         AOVRequestDataCollection BuildAovRequest()
         {
             return new AOVRequestBuilder().Add(
-                AOVRequest.@default,
+                AOVRequest.NewDefault(),
                 RTAllocator,
                 null, // lightFilter
                 new [] {
